@@ -151,5 +151,5 @@ class Parser:
 if __name__ == "__main__":
     parser = Parser()
     client = Client(host='localhost', port='9000', settings={'use_numpy': True})
-    table_name = "belka_digital.apartment_base"
+    table_name = "belka_digital.apartment_database"
     parser.parse(client=client, table_name=table_name)
