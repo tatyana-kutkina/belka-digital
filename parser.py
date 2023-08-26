@@ -141,10 +141,8 @@ class Parser:
                                "kitchen_area": kitchen_area,
                                "district": district,
                                "description": description.text.replace("'", "")}
-
                     values = [str(value) if pd.notna(value) else np.nan for value in new_row.values()]
                     values = [f"'{value}'" if isinstance(value, str) else str(value) for value in values]
-                    print(values)
                     query = f"INSERT INTO {table_name} ({', '.join(new_row.keys())}) VALUES ({', '.join(values)})"
                     client.execute(query)
                     k += 1
@@ -153,5 +151,5 @@ class Parser:
 if __name__ == "__main__":
     parser = Parser()
     client = Client(host='localhost', port='9000', settings={'use_numpy': True})
-    table_name = "belka_digital.apartment_table"
+    table_name = "belka_digital.apartment_base"
     parser.parse(client=client, table_name=table_name)
