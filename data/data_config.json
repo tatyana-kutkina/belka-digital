@@ -1,0 +1,13 @@
+{
+  "table_types": {
+    "id": "uint64",
+    "room_count": "float64",
+    "floor": "float64",
+    "total_floors": "float64",
+    "price": "float64",
+    "total_area": "float64",
+    "live_area": "float64",
+    "kitchen_area": "float64",
+    "district": "float64"
+  }
+}
