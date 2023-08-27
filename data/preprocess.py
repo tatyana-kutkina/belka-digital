@@ -14,7 +14,7 @@ def get_data(host: str, port: str, table_name: str, table_types: dict) -> pd.Dat
     columns = [column[0] for column in result[1]]
     data = result[0]
     df = pd.DataFrame(data=data, columns=columns)
-    df = df.astype({})
+    df = df.astype(table_types)
     return df
 
 def similar(text1: str, text2: str) -> bool:
@@ -63,10 +63,11 @@ def preprocess_data(raw_data: pd.DataFrame, path: str):
     df.loc[mask, "live_area"] = df.loc[mask, "total_area"] - df.loc[mask, "kitchen_area"]
     df = df_origin.drop(["description"], axis=1)
     df = df.drop(["id"], axis=1)
-    df = pd.concat([df, pd.get_dummies(df["district"], prefix='district')], axis=1)
+    df = pd.concat([df, pd.get_dummies(df["district"], prefix='district', dtype=float)], axis=1)
     df = df.drop(["district"], axis=1)
 
     df.to_csv(path)
+    return df
 
 if __name__ == "__main__":
     config_path = os.path.join(os.path.dirname(__file__), "data_config.json")
