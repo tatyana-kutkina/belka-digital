@@ -120,7 +120,7 @@ class Parser:
         k = 0
         for URL in self.links:
             try:
-                response = requests.get(URL, timeout=15)
+                response = requests.get(URL, timeout=30)
                 if response.status_code == 200:
                     response.encoding = "cp1251"
                     soup = bs(response.text, "html.parser")
