@@ -1,17 +1,16 @@
+from typing import Optional, Union
+import re
+
 import requests
 from bs4 import BeautifulSoup as bs
 import pandas as pd
-from typing import Optional, Union
 import numpy as np
 
-import re
 from clickhouse_driver import Client
 
 
-# TODO: add check on accurate links in init
-
 class Parser:
-    """Class for parsing site 'citystar'."""
+    """Class for parsing site 'citystar.ru'."""
 
     regions = ["Ленинский", "Орджоникидзевский", "Правобережный", "Орджоникидзевский (Левый берег)",
                "Ленинский (левый берег)"]
@@ -30,7 +29,7 @@ class Parser:
 
     }
 
-    def __init__(self, links=None, ):
+    def __init__(self, links=None):
         if links is None:
             self.links = [
                 "http://citystar.ru/detal.htm?sT=1&v_id=1&d=43&ag=&nm=%CE%E1%FA%FF%E2%EB%E5%ED%E8%FF+%2D+%CF%F0%EE%E4%E0%EC+%EA%E2%E0%F0%F2%E8%F0%F3+%E2+%E3%2E+%CC%E0%E3%ED%E8%F2%EE%E3%EE%F0%F1%EA%E5&pS=100",
@@ -120,32 +119,35 @@ class Parser:
         """Parse apartment information and add it to clickhouse database"""
         k = 0
         for URL in self.links:
-            response = requests.get(URL)
-            if response.status_code == 200:
-                response.encoding = "cp1251"
-                soup = bs(response.text, "html.parser")
-                descriptions = soup.find_all("tr", class_=["tbb"])
+            try:
+                response = requests.get(URL, timeout=15)
+                if response.status_code == 200:
+                    response.encoding = "cp1251"
+                    soup = bs(response.text, "html.parser")
+                    descriptions = soup.find_all("tr", class_=["tbb"])
 
-                for i, description in enumerate(descriptions):
-                    room_count = self.find_room_count(description.text)
-                    district = self.find_district(description.text)
-                    floor, total_floors = self.find_floor(description.text)
-                    total_area = self.find_total_area(description.text)
-                    live_area = self.find_live_area(description.text)
-                    kitchen_area = self.find_kitchen_area(description.text)
-                    price = self.find_price(description.text)
-                    new_row = {"id": k, "room_count": room_count, "floor": floor, "total_floors": total_floors,
-                               "price": price,
-                               "total_area": total_area,
-                               "live_area": live_area,
-                               "kitchen_area": kitchen_area,
-                               "district": district,
-                               "description": description.text.replace("'", "")}
-                    values = [str(value) if pd.notna(value) else np.nan for value in new_row.values()]
-                    values = [f"'{value}'" if isinstance(value, str) else str(value) for value in values]
-                    query = f"INSERT INTO {table_name} ({', '.join(new_row.keys())}) VALUES ({', '.join(values)})"
-                    client.execute(query)
-                    k += 1
+                    for description in descriptions:
+                        room_count = self.find_room_count(description.text)
+                        district = self.find_district(description.text)
+                        floor, total_floors = self.find_floor(description.text)
+                        total_area = self.find_total_area(description.text)
+                        live_area = self.find_live_area(description.text)
+                        kitchen_area = self.find_kitchen_area(description.text)
+                        price = self.find_price(description.text)
+                        new_row = {"id": k, "room_count": room_count, "floor": floor, "total_floors": total_floors,
+                                   "price": price,
+                                   "total_area": total_area,
+                                   "live_area": live_area,
+                                   "kitchen_area": kitchen_area,
+                                   "district": district,
+                                   "description": description.text.replace("'", "")}
+                        values = [str(value) if pd.notna(value) else np.nan for value in new_row.values()]
+                        values = [f"'{value}'" if isinstance(value, str) else str(value) for value in values]
+                        query = f"INSERT INTO {table_name} ({', '.join(new_row.keys())}) VALUES ({', '.join(values)})"
+                        client.execute(query)
+                        k += 1
+            except requests.exceptions.Timeout:
+                print("Timed out")
 
 
 if __name__ == "__main__":

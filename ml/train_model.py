@@ -1,5 +1,6 @@
 import json
 import pickle
+import os
 from sklearn.linear_model import BayesianRidge
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -14,11 +15,13 @@ def train(X, y, model_params):
 
 
 if __name__ == "__main__":
-    with open("/home/tatyana/PycharmProjects/belka-digital/ml/config.json", 'r') as file:
+    config_path = os.path.join(os.path.dirname(__file__), "config.json")
+    with open(config_path, 'r') as file:
         config = json.load(file)
     model_params = config["model_params"]
-
-    df = pd.read_csv("/home/tatyana/PycharmProjects/belka-digital/train_test_data.csv", index_col=0)
+    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+    data_path = os.path.join(data_dir, 'train_test_data.csv')
+    df = pd.read_csv(data_path, index_col=0)
     X, y = df.drop(["price"], axis=1), df["price"]
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
     train(X_train, y_train, model_params)

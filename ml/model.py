@@ -1,11 +1,11 @@
 import json
 import pickle
 import numpy as np
+import os
 from pydantic import BaseModel
 
-# TODO: get data from database
-
-with open("/home/tatyana/PycharmProjects/belka-digital/ml/config.json", 'r') as file:
+config_path = os.path.join(os.path.dirname(__file__), "config.json")
+with open(config_path, 'r') as file:
     config = json.load(file)
 
 
