@@ -1,14 +1,14 @@
 import json
 import pickle
 import os
-from sklearn.linear_model import BayesianRidge
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
 
 def train(X, y, model_params):
     """Train model and save to the disk."""
-    model = BayesianRidge(**model_params)
+    model = RandomForestRegressor(**model_params)
     model.fit(X, y)
     filename = 'trained_model.sav'
     pickle.dump(model, open(filename, 'wb'))
